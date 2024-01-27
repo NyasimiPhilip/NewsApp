@@ -1,5 +1,6 @@
 package com.android.newsapp.data.api
 
+import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okio.buffer
@@ -49,6 +50,10 @@ class NewsApiServiceTest {
     @Test
     fun getTopHeadlines_sentRequest_receivedExpected() {
         // Perform the actual test, e.g., make API requests and validate the responses
-        // TODO: Add test logic here
+        runBlocking {
+            enqueueMockResponse("newresponse.json")
+            val responseBody = service.getTopHeadlines("us", 1).body()
+            val request = server.takeRequest()
+        }
     }
 }
