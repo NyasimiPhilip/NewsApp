@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("kotlin-kapt")
+    id("com.google.dagger.hilt.android")
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -31,6 +33,8 @@ android {
     }
     buildFeatures{
         buildConfig = true
+        viewBinding = true
+
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -76,8 +80,21 @@ dependencies {
 
     // Annotation processor
     kapt("androidx.lifecycle:lifecycle-compiler:$lifecycle_version")
+    //hilt dependencies
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
+
+    //JetPack Navigation
+    // Kotlin
+    val nav_version = "2.7.6"
+    implementation("androidx.navigation:navigation-fragment-ktx:$nav_version")
+    implementation("androidx.navigation:navigation-ui-ktx:$nav_version")
 
 
 
 
+}
+// Allow references to generated code
+kapt {
+    correctErrorTypes = true
 }
