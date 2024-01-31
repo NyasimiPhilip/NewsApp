@@ -18,8 +18,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.widget.SearchView
 
-
 class NewsFragment : Fragment() {
+    // Declare variables
     private lateinit var viewModel: NewsViewModel
     private lateinit var fragmentNewsBinding: FragmentNewsBinding
     private lateinit var newsAdapter: NewsAdapter
@@ -41,26 +41,30 @@ class NewsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         // Initialize NewsAdapter by getting it from the MainActivity
         newsAdapter = (activity as MainActivity).newsAdapter
         // Initialize ViewModel and set up RecyclerView
         viewModel = (activity as MainActivity).viewModel
 
+        // Set click listener for RecyclerView items
         newsAdapter.setOnItemClickListener {
-            val bundle = Bundle().apply{
+            val bundle = Bundle().apply {
                 putSerializable("selected_article", it)
             }
             findNavController().navigate(
                 R.id.action_newsFragment_to_infoFragment,
                 bundle
             )
-
         }
+        // Initialize RecyclerView and fetch initial news data
         initRecyclerView()
         viewNewsList()
+        // Set up search functionality
         setSearchView()
     }
 
+    // Function to fetch and display news data
     private fun viewNewsList() {
         viewModel.getNewsHeadlines(country, page)
         viewModel.newsHeadLines.observe(viewLifecycleOwner) { response ->
@@ -68,6 +72,7 @@ class NewsFragment : Fragment() {
                 is com.android.newsapp.data.util.Resource.SUCCESS -> {
                     hideProgressBar()
                     response.data?.let {
+                        // Update RecyclerView with new data
                         newsAdapter.differ.submitList(it.articles.toList())
                         pages = if (it.totalResults % 20 == 0) {
                             it.totalResults / 20
@@ -95,8 +100,8 @@ class NewsFragment : Fragment() {
         }
     }
 
+    // Function to initialize RecyclerView
     private fun initRecyclerView() {
-        // Set up RecyclerView with NewsAdapter and LinearLayoutManager
         fragmentNewsBinding.rvNews.apply {
             adapter = newsAdapter
             layoutManager = LinearLayoutManager(activity)
@@ -104,18 +109,19 @@ class NewsFragment : Fragment() {
         }
     }
 
+    // Function to show progress bar
     private fun showProgressBar() {
-        // Show progress bar
         isLoading = true
         fragmentNewsBinding.progressBar.visibility = View.VISIBLE
     }
 
+    // Function to hide progress bar
     private fun hideProgressBar() {
-        // Hide progress bar
         isLoading = false
         fragmentNewsBinding.progressBar.visibility = View.INVISIBLE
     }
 
+    // Scroll listener for RecyclerView
     private val onScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
@@ -143,16 +149,19 @@ class NewsFragment : Fragment() {
             }
         }
     }
-    //search
+
+    // Function to set up search functionality
     private fun setSearchView() {
         fragmentNewsBinding.svNews.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
+                // Perform search when submit button is clicked
                 viewModel.searchNews("us", query.orEmpty(), page)
                 viewSearchedNews()
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                // Delay search when text changes to avoid rapid requests
                 MainScope().launch {
                     delay(2000)
                     viewModel.searchNews("us", newText.orEmpty(), page)
@@ -162,19 +171,23 @@ class NewsFragment : Fragment() {
             }
         })
 
+        // Handle close event for SearchView
         fragmentNewsBinding.svNews.setOnCloseListener {
+            // Reset RecyclerView and fetch the original news list
             initRecyclerView()
             viewNewsList()
             false
         }
     }
-    //search
-    fun viewSearchedNews(){
+
+    // Function to handle the display of searched news
+    fun viewSearchedNews() {
         viewModel.searchedNews.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is com.android.newsapp.data.util.Resource.SUCCESS -> {
                     hideProgressBar()
                     response.data?.let {
+                        // Update RecyclerView with searched news data
                         newsAdapter.differ.submitList(it.articles.toList())
                         pages = if (it.totalResults % 20 == 0) {
                             it.totalResults / 20
@@ -202,4 +215,3 @@ class NewsFragment : Fragment() {
         }
     }
 }
-
