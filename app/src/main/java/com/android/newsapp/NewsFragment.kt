@@ -13,6 +13,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.newsapp.databinding.FragmentNewsBinding
 import com.android.newsapp.presentation.adapter.NewsAdapter
 import com.android.newsapp.presentation.viewmodel.NewsViewModel
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import android.widget.SearchView
+
 
 class NewsFragment : Fragment() {
     private lateinit var viewModel: NewsViewModel
@@ -53,6 +58,7 @@ class NewsFragment : Fragment() {
         }
         initRecyclerView()
         viewNewsList()
+        setSearchView()
     }
 
     private fun viewNewsList() {
@@ -137,4 +143,63 @@ class NewsFragment : Fragment() {
             }
         }
     }
+    //search
+    private fun setSearchView() {
+        fragmentNewsBinding.svNews.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                viewModel.searchNews("us", query.orEmpty(), page)
+                viewSearchedNews()
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                MainScope().launch {
+                    delay(2000)
+                    viewModel.searchNews("us", newText.orEmpty(), page)
+                    viewSearchedNews()
+                }
+                return false
+            }
+        })
+
+        fragmentNewsBinding.svNews.setOnCloseListener {
+            initRecyclerView()
+            viewNewsList()
+            false
+        }
+    }
+    //search
+    fun viewSearchedNews(){
+        viewModel.searchedNews.observe(viewLifecycleOwner) { response ->
+            when (response) {
+                is com.android.newsapp.data.util.Resource.SUCCESS -> {
+                    hideProgressBar()
+                    response.data?.let {
+                        newsAdapter.differ.submitList(it.articles.toList())
+                        pages = if (it.totalResults % 20 == 0) {
+                            it.totalResults / 20
+                        } else {
+                            it.totalResults / 20 + 1
+                        }
+                        isLastPage = page == pages
+
+                        // Notify the user about successful pagination
+                        if (page > 1) {
+                            Toast.makeText(activity, "Loaded more articles", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                is com.android.newsapp.data.util.Resource.LOADING -> {
+                    showProgressBar()
+                }
+                is com.android.newsapp.data.util.Resource.ERROR -> {
+                    hideProgressBar()
+                    response.message?.let {
+                        Toast.makeText(activity, "An error occurred: $it", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
 }
+
