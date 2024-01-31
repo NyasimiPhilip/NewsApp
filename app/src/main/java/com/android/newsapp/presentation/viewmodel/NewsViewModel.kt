@@ -15,21 +15,36 @@ import com.android.newsapp.domain.usecase.GetNewsHeadlinesUseCase
 import com.android.newsapp.domain.usecase.GetSearchedNewsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
 
-
+/**
+ * ViewModel for managing and providing data related to news headlines.
+ *
+ * @property app The application context.
+ * @property getNewsHeadlinesUseCase The use case for retrieving top headlines.
+ * @property getSearchedNewsUseCase The use case for searching news.
+ */
 class NewsViewModel(
     private val app: Application,
     private val getNewsHeadlinesUseCase: GetNewsHeadlinesUseCase,
     private val getSearchedNewsUseCase: GetSearchedNewsUseCase
-): AndroidViewModel(app){
+) : AndroidViewModel(app) {
 
-    val newsHeadLines : MutableLiveData<Resource<APIResponse>> = MutableLiveData()
+    // LiveData for top headlines
+    val newsHeadLines: MutableLiveData<Resource<APIResponse>> = MutableLiveData()
 
+    /**
+     * Retrieves top headlines and updates the [newsHeadLines] LiveData.
+     *
+     * @param country The country for which headlines are requested.
+     * @param page The page number of headlines to retrieve.
+     */
     fun getNewsHeadlines(country: String, page: Int) = viewModelScope.launch(Dispatchers.IO) {
+        // Post LOADING state to LiveData
         newsHeadLines.postValue(Resource.LOADING())
 
-        // Check if the network is available
         try {
+            // Check if the network is available
             if (isNetworkAvailable(app)) {
                 // Call the use case to get news headlines
                 val apiResult = getNewsHeadlinesUseCase.execute(country, page)
@@ -42,19 +57,28 @@ class NewsViewModel(
             }
         } catch (e: Exception) {
             // Catch specific exception types if necessary
-            newsHeadLines.postValue(Resource.ERROR( null, e.message.toString()))
+            newsHeadLines.postValue(Resource.ERROR(null, e.message.toString()))
         }
     }
+
+    /**
+     * Checks if the network is available.
+     *
+     * @param context The context to use for checking network availability.
+     * @return True if the network is available; false otherwise.
+     */
     private fun isNetworkAvailable(context: Context?): Boolean {
         if (context == null) return false
 
         // Get the ConnectivityManager service
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // For Android M and above, use the NetworkCapabilities to check the internet connection
             val networkCapabilities = connectivityManager.activeNetwork ?: return false
-            val capabilities = connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+            val capabilities =
+                connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
 
             return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
         } else {
@@ -64,26 +88,40 @@ class NewsViewModel(
         }
     }
 
-    //search
+    // LiveData for searched news
     val searchedNews: MutableLiveData<Resource<APIResponse>> = MutableLiveData()
+
+    /**
+     * Searches for news and updates the [searchedNews] LiveData.
+     *
+     * @param country The country for which news is searched.
+     * @param searchQuery The query string for news search.
+     * @param page The page number of search results to retrieve.
+     */
     fun searchNews(
         country: String,
         searchQuery: String,
         page: Int
-    ) = viewModelScope.launch{
+    ) = viewModelScope.launch {
+        // Post LOADING state to LiveData
         searchedNews.postValue(Resource.LOADING())
-        try{
-        if(isNetworkAvailable(app)){
-            val response = getSearchedNewsUseCase.execute(
-                country,
-                searchQuery,
-                page
-            )
-            searchedNews.postValue(response)
 
-        }else{
-            searchedNews.postValue(Resource.ERROR(null, "no internet connection"))
-        }}catch (e: Exception){
+        try {
+            // Check if the network is available
+            if (isNetworkAvailable(app)) {
+                // Call the use case to search for news
+                val response = getSearchedNewsUseCase.execute(
+                    country,
+                    searchQuery,
+                    page
+                )
+                searchedNews.postValue(response)
+            } else {
+                // Network is not available, post ERROR state to LiveData
+                searchedNews.postValue(Resource.ERROR(null, "No internet connection"))
+            }
+        } catch (e: Exception) {
+            // Catch specific exception types if necessary
             searchedNews.postValue(Resource.ERROR(null, e.message.toString()))
         }
     }

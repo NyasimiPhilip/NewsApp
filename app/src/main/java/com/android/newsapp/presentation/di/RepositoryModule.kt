@@ -9,9 +9,16 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Dagger Hilt module for providing dependencies related to the repository.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 class RepositoryModule {
+
+    /**
+     * Provides a singleton instance of NewsRepository.
+     */
     @Provides
     @Singleton
     fun provideNewsRepository(

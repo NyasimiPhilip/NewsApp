@@ -25,14 +25,22 @@ class InfoFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Using View Binding to access views in a type-safe manner
         fragmentInfoBinding = FragmentInfoBinding.bind(view)
-        val args : InfoFragmentArgs by navArgs()
+
+        // Accessing arguments using the navigation component's safe args
+        val args: InfoFragmentArgs by navArgs()
         val article = args.selectedArticle
-        fragmentInfoBinding.wvInfo.apply{
+
+        // Setting up WebView to display the article's URL
+        fragmentInfoBinding.wvInfo.apply {
             webViewClient = WebViewClient()
-            if(article.url!=""){
-                loadUrl(article.url.orEmpty()) // Use orEmpty() to provide an empty string if article.url is null
-            }else{
+
+            // Check if the article's URL is not empty before loading
+            if (article.url != null && article.url.isNotEmpty()) {
+                loadUrl(article.url)
+            } else {
+                // Display a toast message for an invalid URL
                 Toast.makeText(context, "Invalid URL", Toast.LENGTH_LONG).show()
             }
         }

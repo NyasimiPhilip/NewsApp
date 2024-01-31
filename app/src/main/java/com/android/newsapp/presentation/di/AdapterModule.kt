@@ -7,13 +7,19 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Dagger Hilt module for providing dependencies related to adapters.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 class AdapterModule {
 
+    /**
+     * Provides a singleton instance of the NewsAdapter.
+     */
     @Singleton
     @Provides
-    fun provideNewsAdapter(): NewsAdapter{
+    fun provideNewsAdapter(): NewsAdapter {
         return NewsAdapter()
     }
 }

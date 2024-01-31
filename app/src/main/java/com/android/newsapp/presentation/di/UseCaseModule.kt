@@ -9,21 +9,32 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Dagger Hilt module for providing dependencies related to use cases.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 class UseCaseModule {
+
+    /**
+     * Provides a singleton instance of GetNewsHeadlinesUseCase.
+     */
     @Provides
     @Singleton
     fun providesGetNewsHeadLinesUseCase(
-        newsRepository:NewsRepository
-    ): GetNewsHeadlinesUseCase{
+        newsRepository: NewsRepository
+    ): GetNewsHeadlinesUseCase {
         return GetNewsHeadlinesUseCase(newsRepository)
     }
+
+    /**
+     * Provides a singleton instance of GetSearchedNewsUseCase.
+     */
     @Provides
     @Singleton
     fun providesGetSearchedNewsUseCase(
-        newsRepository:NewsRepository
-    ): GetSearchedNewsUseCase{
+        newsRepository: NewsRepository
+    ): GetSearchedNewsUseCase {
         return GetSearchedNewsUseCase(newsRepository)
     }
 }

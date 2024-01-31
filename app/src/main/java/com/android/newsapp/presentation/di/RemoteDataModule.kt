@@ -9,15 +9,21 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/**
+ * Dagger Hilt module for providing dependencies related to remote data sources.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 class RemoteDataModule {
 
+    /**
+     * Provides a singleton instance of NewsRemoteDataSource.
+     */
     @Provides
     @Singleton
     fun provideNewsRemoteDataSource(
         newsApiService: NewsApiService
-    ):NewsRemoteDataSource{
+    ): NewsRemoteDataSource {
         return NewsRemoteDataSourceImpl(newsApiService)
     }
 }
