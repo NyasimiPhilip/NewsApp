@@ -78,8 +78,7 @@ class NewsRepositoryImpl(
      * @param article The article to be deleted.
      */
     override suspend fun deleteNews(article: Article) {
-        // Implementation not provided, as it is marked as TODO
-        // You may implement the logic to delete the article from a local database here
+       newsLocalDataSource.deleteArticlesFromDB(article)
     }
 
     /**
