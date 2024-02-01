@@ -9,10 +9,13 @@ import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.navigation.fragment.navArgs
 import com.android.newsapp.databinding.FragmentInfoBinding
+import com.android.newsapp.presentation.viewmodel.NewsViewModel
+import com.google.android.material.snackbar.Snackbar
 
 class InfoFragment : Fragment() {
 
     private lateinit var fragmentInfoBinding: FragmentInfoBinding
+    private lateinit var viewModel : NewsViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,12 +40,18 @@ class InfoFragment : Fragment() {
             webViewClient = WebViewClient()
 
             // Check if the article's URL is not empty before loading
-            if (article.url != null && article.url.isNotEmpty()) {
+            if (!article.url.isNullOrEmpty()) {
                 loadUrl(article.url)
             } else {
                 // Display a toast message for an invalid URL
                 Toast.makeText(context, "Invalid URL", Toast.LENGTH_LONG).show()
             }
+        }
+        viewModel = (activity as MainActivity).viewModel
+        fragmentInfoBinding.fabSave.setOnClickListener {
+            viewModel.saveArticle(article)
+            Snackbar.make(view, "Saved Successfully", Snackbar.LENGTH_LONG).show()
+
         }
     }
 }

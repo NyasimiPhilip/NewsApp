@@ -7,19 +7,19 @@ import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.newsapp.databinding.FragmentNewsBinding
 import com.android.newsapp.presentation.adapter.NewsAdapter
 import com.android.newsapp.presentation.viewmodel.NewsViewModel
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.widget.SearchView
 
 class NewsFragment : Fragment() {
-    // Declare variables
+
     private lateinit var viewModel: NewsViewModel
     private lateinit var fragmentNewsBinding: FragmentNewsBinding
     private lateinit var newsAdapter: NewsAdapter
@@ -34,7 +34,6 @@ class NewsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         fragmentNewsBinding = FragmentNewsBinding.inflate(inflater, container, false)
         return fragmentNewsBinding.root
     }
@@ -42,29 +41,21 @@ class NewsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize NewsAdapter by getting it from the MainActivity
         newsAdapter = (activity as MainActivity).newsAdapter
-        // Initialize ViewModel and set up RecyclerView
         viewModel = (activity as MainActivity).viewModel
 
-        // Set click listener for RecyclerView items
         newsAdapter.setOnItemClickListener {
             val bundle = Bundle().apply {
                 putSerializable("selected_article", it)
             }
-            findNavController().navigate(
-                R.id.action_newsFragment_to_infoFragment,
-                bundle
-            )
+            findNavController().navigate(R.id.action_newsFragment_to_infoFragment, bundle)
         }
-        // Initialize RecyclerView and fetch initial news data
+
         initRecyclerView()
         viewNewsList()
-        // Set up search functionality
         setSearchView()
     }
 
-    // Function to fetch and display news data
     private fun viewNewsList() {
         viewModel.getNewsHeadlines(country, page)
         viewModel.newsHeadLines.observe(viewLifecycleOwner) { response ->
@@ -72,7 +63,6 @@ class NewsFragment : Fragment() {
                 is com.android.newsapp.data.util.Resource.SUCCESS -> {
                     hideProgressBar()
                     response.data?.let {
-                        // Update RecyclerView with new data
                         newsAdapter.differ.submitList(it.articles.toList())
                         pages = if (it.totalResults % 20 == 0) {
                             it.totalResults / 20
@@ -81,7 +71,6 @@ class NewsFragment : Fragment() {
                         }
                         isLastPage = page == pages
 
-                        // Notify the user about successful pagination
                         if (page > 1) {
                             Toast.makeText(activity, "Loaded more articles", Toast.LENGTH_SHORT).show()
                         }
@@ -100,32 +89,27 @@ class NewsFragment : Fragment() {
         }
     }
 
-    // Function to initialize RecyclerView
     private fun initRecyclerView() {
         fragmentNewsBinding.rvNews.apply {
             adapter = newsAdapter
             layoutManager = LinearLayoutManager(activity)
-            addOnScrollListener(this@NewsFragment.onScrollListener)
+            addOnScrollListener(onScrollListener)
         }
     }
 
-    // Function to show progress bar
     private fun showProgressBar() {
         isLoading = true
         fragmentNewsBinding.progressBar.visibility = View.VISIBLE
     }
 
-    // Function to hide progress bar
     private fun hideProgressBar() {
         isLoading = false
         fragmentNewsBinding.progressBar.visibility = View.INVISIBLE
     }
 
-    // Scroll listener for RecyclerView
     private val onScrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
-            // Check if the user is scrolling
             if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
                 isScrolling = true
             }
@@ -133,16 +117,13 @@ class NewsFragment : Fragment() {
 
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            // Check if the user has reached the end of the list
             val layoutManager = fragmentNewsBinding.rvNews.layoutManager as LinearLayoutManager
             val sizeOfCurrentList = layoutManager.itemCount
             val visibleItems = layoutManager.childCount
             val topPosition = layoutManager.findFirstVisibleItemPosition()
             val hasReachedToEnd = topPosition + visibleItems >= sizeOfCurrentList
-            // Check if pagination is needed
             val shouldPaginate = !isLoading && !isLastPage && hasReachedToEnd && isScrolling
             if (shouldPaginate) {
-                // Increment the page and fetch more news headlines
                 page++
                 viewModel.getNewsHeadlines(country, page)
                 isScrolling = false
@@ -150,68 +131,27 @@ class NewsFragment : Fragment() {
         }
     }
 
-    // Function to set up search functionality
     private fun setSearchView() {
         fragmentNewsBinding.svNews.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                // Perform search when submit button is clicked
                 viewModel.searchNews("us", query.orEmpty(), page)
-                viewSearchedNews()
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                // Delay search when text changes to avoid rapid requests
-                MainScope().launch {
+                lifecycleScope.launch {
                     delay(2000)
                     viewModel.searchNews("us", newText.orEmpty(), page)
-                    viewSearchedNews()
+                    viewNewsList()
                 }
                 return false
             }
         })
 
-        // Handle close event for SearchView
         fragmentNewsBinding.svNews.setOnCloseListener {
-            // Reset RecyclerView and fetch the original news list
             initRecyclerView()
             viewNewsList()
             false
-        }
-    }
-
-    // Function to handle the display of searched news
-    fun viewSearchedNews() {
-        viewModel.searchedNews.observe(viewLifecycleOwner) { response ->
-            when (response) {
-                is com.android.newsapp.data.util.Resource.SUCCESS -> {
-                    hideProgressBar()
-                    response.data?.let {
-                        // Update RecyclerView with searched news data
-                        newsAdapter.differ.submitList(it.articles.toList())
-                        pages = if (it.totalResults % 20 == 0) {
-                            it.totalResults / 20
-                        } else {
-                            it.totalResults / 20 + 1
-                        }
-                        isLastPage = page == pages
-
-                        // Notify the user about successful pagination
-                        if (page > 1) {
-                            Toast.makeText(activity, "Loaded more articles", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-                is com.android.newsapp.data.util.Resource.LOADING -> {
-                    showProgressBar()
-                }
-                is com.android.newsapp.data.util.Resource.ERROR -> {
-                    hideProgressBar()
-                    response.message?.let {
-                        Toast.makeText(activity, "An error occurred: $it", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
         }
     }
 }

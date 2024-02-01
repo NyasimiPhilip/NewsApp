@@ -1,6 +1,7 @@
 package com.android.newsapp.presentation.di
 
 import com.android.newsapp.data.repository.NewsRepositoryImpl
+import com.android.newsapp.data.repository.datasource.NewsLocalDataSource
 import com.android.newsapp.data.repository.datasource.NewsRemoteDataSource
 import com.android.newsapp.domain.repository.NewsRepository
 import dagger.Module
@@ -22,8 +23,12 @@ class RepositoryModule {
     @Provides
     @Singleton
     fun provideNewsRepository(
-        newsRemoteDataSource: NewsRemoteDataSource
+        newsRemoteDataSource: NewsRemoteDataSource,
+        newsLocalDataSource: NewsLocalDataSource
     ): NewsRepository {
-        return NewsRepositoryImpl(newsRemoteDataSource)
+        return NewsRepositoryImpl(
+            newsRemoteDataSource,
+            newsLocalDataSource
+        )
     }
 }

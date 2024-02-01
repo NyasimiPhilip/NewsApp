@@ -7,15 +7,17 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.liveData
 import androidx.lifecycle.viewModelScope
 import com.android.newsapp.data.model.APIResponse
+import com.android.newsapp.data.model.Article
 import com.android.newsapp.data.util.Resource
 import com.android.newsapp.domain.usecase.GetNewsHeadlinesUseCase
+import com.android.newsapp.domain.usecase.GetSavedNewsUseCase
 import com.android.newsapp.domain.usecase.GetSearchedNewsUseCase
+import com.android.newsapp.domain.usecase.SaveNewsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.lang.Exception
 
 /**
  * ViewModel for managing and providing data related to news headlines.
@@ -27,7 +29,9 @@ import java.lang.Exception
 class NewsViewModel(
     private val app: Application,
     private val getNewsHeadlinesUseCase: GetNewsHeadlinesUseCase,
-    private val getSearchedNewsUseCase: GetSearchedNewsUseCase
+    private val getSearchedNewsUseCase: GetSearchedNewsUseCase,
+    private val saveNewsUseCase: SaveNewsUseCase,
+    private val getSavedNewsUseCase: GetSavedNewsUseCase
 ) : AndroidViewModel(app) {
 
     // LiveData for top headlines
@@ -123,6 +127,15 @@ class NewsViewModel(
         } catch (e: Exception) {
             // Catch specific exception types if necessary
             searchedNews.postValue(Resource.ERROR(null, e.message.toString()))
+        }
+    }
+    //local data
+    fun saveArticle(article: Article) = viewModelScope.launch{
+        saveNewsUseCase.execute(article)
+    }
+    fun getSavedNews() = liveData{
+        getSavedNewsUseCase.execute().collect{
+            emit(it)
         }
     }
 }

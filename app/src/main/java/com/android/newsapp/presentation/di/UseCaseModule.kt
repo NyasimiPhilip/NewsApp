@@ -2,7 +2,9 @@ package com.android.newsapp.presentation.di
 
 import com.android.newsapp.domain.repository.NewsRepository
 import com.android.newsapp.domain.usecase.GetNewsHeadlinesUseCase
+import com.android.newsapp.domain.usecase.GetSavedNewsUseCase
 import com.android.newsapp.domain.usecase.GetSearchedNewsUseCase
+import com.android.newsapp.domain.usecase.SaveNewsUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,5 +38,25 @@ class UseCaseModule {
         newsRepository: NewsRepository
     ): GetSearchedNewsUseCase {
         return GetSearchedNewsUseCase(newsRepository)
+    }
+    /**
+     * Provides a singleton instance of SaveNewsUseCase.
+     */
+    @Provides
+    @Singleton
+    fun providesSaveNewsUseCase(
+        newsRepository: NewsRepository
+    ): SaveNewsUseCase {
+        return SaveNewsUseCase(newsRepository)
+    }
+    /**
+     * Provides a singleton instance of SaveNewsUseCase.
+     */
+    @Provides
+    @Singleton
+    fun providesGetSavedNewsUseCase(
+        newsRepository: NewsRepository
+    ): GetSavedNewsUseCase {
+        return GetSavedNewsUseCase(newsRepository)
     }
 }

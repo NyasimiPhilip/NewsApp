@@ -1,5 +1,7 @@
 package com.android.newsapp.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
@@ -15,7 +17,12 @@ import java.io.Serializable
  * @property url The URL link to the full article.
  * @property urlToImage The URL link to the image associated with the article.
  */
+@Entity(
+    tableName = "articles"
+)
 data class Article(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int? = null,
     @SerializedName("author")
     val author: String?, // Author of the article
     @SerializedName("content")

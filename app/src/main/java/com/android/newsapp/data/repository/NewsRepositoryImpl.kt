@@ -2,6 +2,7 @@ package com.android.newsapp.data.repository
 
 import com.android.newsapp.data.model.APIResponse
 import com.android.newsapp.data.model.Article
+import com.android.newsapp.data.repository.datasource.NewsLocalDataSource
 import com.android.newsapp.data.repository.datasource.NewsRemoteDataSource
 import com.android.newsapp.data.util.Resource
 import com.android.newsapp.domain.repository.NewsRepository
@@ -14,7 +15,8 @@ import retrofit2.Response
  * @param newsRemoteDataSource The data source for fetching news data from the remote server.
  */
 class NewsRepositoryImpl(
-    private val newsRemoteDataSource: NewsRemoteDataSource
+    private val newsRemoteDataSource: NewsRemoteDataSource,
+    private val newsLocalDataSource: NewsLocalDataSource
 ) : NewsRepository {
 
     /**
@@ -66,8 +68,8 @@ class NewsRepositoryImpl(
      * @param article The article to be saved.
      */
     override suspend fun saveNews(article: Article) {
-        // Implementation not provided, as it is marked as TODO
-        // You may implement the logic to save the article to a local database here
+       // Save the article to a local database here
+        newsLocalDataSource.saveArticleToDB(article)
     }
 
     /**
@@ -86,7 +88,6 @@ class NewsRepositoryImpl(
      * @return A [Flow] containing a list of saved news articles.
      */
     override fun getSavedNews(): Flow<List<Article>> {
-        // Implementation not provided, as it is marked as TODO
-        TODO("Not yet implemented")
+        return newsLocalDataSource.getSavedArticles()
     }
 }

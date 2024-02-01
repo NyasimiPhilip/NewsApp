@@ -4,7 +4,9 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.android.newsapp.domain.usecase.GetNewsHeadlinesUseCase
+import com.android.newsapp.domain.usecase.GetSavedNewsUseCase
 import com.android.newsapp.domain.usecase.GetSearchedNewsUseCase
+import com.android.newsapp.domain.usecase.SaveNewsUseCase
 
 /**
  * Factory class responsible for creating instances of the [NewsViewModel].
@@ -16,7 +18,9 @@ import com.android.newsapp.domain.usecase.GetSearchedNewsUseCase
 class NewsViewModelFactory(
     private val app: Application,
     private val getNewsHeadlinesUseCase: GetNewsHeadlinesUseCase,
-    private val getSearchedNewsUseCase: GetSearchedNewsUseCase
+    private val getSearchedNewsUseCase: GetSearchedNewsUseCase,
+    private val saveNewsUseCase: SaveNewsUseCase,
+    private val getSavedNewsUseCase: GetSavedNewsUseCase
 ) : ViewModelProvider.Factory {
 
     /**
@@ -30,7 +34,9 @@ class NewsViewModelFactory(
         return NewsViewModel(
             app,
             getNewsHeadlinesUseCase,
-            getSearchedNewsUseCase
+            getSearchedNewsUseCase,
+            saveNewsUseCase,
+            getSavedNewsUseCase
         ) as T
     }
 }
